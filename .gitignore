@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment variables, passwords, API tokens, secrets
+.env
+
+# Operating System cruft
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
