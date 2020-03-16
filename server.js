@@ -1,5 +1,6 @@
 require('dotenv').config()
 const express = require('express')
+const path = require('path');
 const server = express()
 const port = process.env.PORT
 var pgp = require('pg-promise')(/* options */)
@@ -7,6 +8,8 @@ var dbCxn = pgp(process.env.DATABASE_URL);
 var bodyParser = require('body-parser')
 
 server.use(bodyParser.json())
+
+server.get('/', (req, res) => res.sendFile(path.join(__dirname,'app.html')))
 
 //user can read tweets
 server.get('/users/:userId/tweets', async function requestHandler(req, res){

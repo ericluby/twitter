@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Twitter v2.0</title>
+    <style>
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Twitter v2.0</h1>
+    <h2>Create a Tweet</h2>
+    <input type="text" id="message" placeholder="What's on your mind?" />
+    <button  id="messageButton" onclick="createTweet()">Tweet</button>
+    <h2>Latest Tweets</h2>
+    <button onclick="readTweets()">Refresh latest Tweets</button>
+    <ul>
+      <!-- <li>@username: message1 <button onclick="deleteTweet()">delete tweet</button></li> -->
+      <!-- <li>@username: message2 <button onclick="deleteTweet()">delete tweet</button></li> -->
+    </ul>
+    <script>
+      // load tweets when the page first loads
+      window.onload = readTweets
+      // create tweet   //    /users/:userId/tweets
+      async function createTweet(){
+        const messageInput = document.body.querySelector("#message")
+        const messageButton = document.body.querySelector("#messageButton")
+        const userId = 1
+        const message = messageInput.value
+        const data = {message: message};
+        // disable the button and input
+        messageInput.disabled = true //disable the messageInput
+        messageButton.disabled = true
+        // tell the server the new tweet
+        // server then writes to the DB the new tweet
+        await fetch(`/users/${userId}/tweets`, {
+          method: 'POST', // or 'PUT'
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data),
+        })
+        // clear the #message input
+        messageInput.value = ""
+        // automatically refresh the shown latest tweets
+        readTweets();
+        // alert that tweet was created or failed
+        alert("tweet was created successfully")
+        // reenable the button
+        messageInput.disabled = false
+        messageButton.disabled = false
+      }
+
+      // read tweets
+      async function readTweets(){
+        // const tweets = [{id: 1, username: "lumpkin", message: "you look fine today mr. pumpkin"}, {id: 2, username: "mr. pumpkin", message: "hell yeah i do lumpkin. I got new kicks..."}]
+        // get tweets from server
+        const tweets = await fetch("/users/1/tweets", {method: "GET"}).then(res => res.json());
+        // select the unordered list (UL)
+        const ul = document.body.querySelector("ul")
+        // delete the list items in the UL
+        while (ul.children.length>0) {
+          ul.removeChild(ul.firstElementChild)
+        }
+        // create new list items for each tweet
+        // append each list item to the UL
+        tweets.forEach((tweet) => {
+          const liNode = document.createElement("li");                 // Create a <li> node
+          const textNode = document.createTextNode(tweet.message);         // Create a text node
+          const userNode = document.createTextNode("@" + tweet.username + ": ");         // Create a text node
+          liNode.appendChild(userNode);
+          liNode.appendChild(textNode);   // Append the text to <li>
+          const buttonNode = document.createElement("button");                 // Create a <button> node
+          buttonNode.onclick = () => deleteTweet(tweet.id, buttonNode);
+          buttonNode.appendChild(document.createTextNode("delete tweet"))
+          liNode.appendChild(buttonNode);   // Append the button to <li>
+          ul.appendChild(liNode);
+        });
+      }
+
+      // delete tweet
+      async function deleteTweet (tweetId, buttonNode) {
+        const userId = 1
+        // disable delete tweet button to prevent mutliple clicks
+        buttonNode.disabled = true
+        // tell server to remove the tweet
+        await fetch(`/users/${userId}/tweets/${tweetId}`, {method: 'DELETE'})
+        // refresh tweets, notify user, undisable now deleted tweet's button.
+        readTweets()
+        alert("Tweet deleted!")
+        buttonNode.disabled = false
+      }
+    </script>
+  </body>
+</html>
