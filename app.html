@@ -8,6 +8,13 @@
   </head>
   <body>
     <h1>Welcome to Twitter v2.0</h1>
+    <fieldset>
+      <legend>Existing User Login/Logout</legend>
+      <button id="loginButton" onclick="login()"> login </button>
+      <button id="logoutButton" onclick="logout()" hidden> logout </button>
+      <input type="text" id="loginUsername" placeholder="Username" />
+      <input type="text" id="loginPassword" placeholder="Password" />
+    </fieldset>
     <h2>Create a Tweet</h2>
     <input type="text" id="message" placeholder="What's on your mind?" />
     <button  id="messageButton" onclick="createTweet()">Tweet</button>
@@ -32,17 +39,17 @@
         messageButton.disabled = true
         // tell the server the new tweet
         // server then writes to the DB the new tweet
-        await fetch(`/users/${userId}/tweets`, {
+        await fetch(`/tweets`, {
           method: 'POST', // or 'PUT'
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(data),
-        })
+        }).then(res => alert(res.status + ': ' + res.statusText))
         // clear the #message input
         messageInput.value = ""
         // automatically refresh the shown latest tweets
         readTweets();
         // alert that tweet was created or failed
-        alert("tweet was created successfully")
+        // alert("tweet was created successfully")
         // reenable the button
         messageInput.disabled = false
         messageButton.disabled = false
@@ -52,7 +59,7 @@
       async function readTweets(){
         // const tweets = [{id: 1, username: "lumpkin", message: "you look fine today mr. pumpkin"}, {id: 2, username: "mr. pumpkin", message: "hell yeah i do lumpkin. I got new kicks..."}]
         // get tweets from server
-        const tweets = await fetch("/users/1/tweets", {method: "GET"}).then(res => res.json());
+        const tweets = await fetch("/tweets", {method: "GET"}).then(res => res.json());
         // select the unordered list (UL)
         const ul = document.body.querySelector("ul")
         // delete the list items in the UL
@@ -81,11 +88,36 @@
         // disable delete tweet button to prevent mutliple clicks
         buttonNode.disabled = true
         // tell server to remove the tweet
-        await fetch(`/users/${userId}/tweets/${tweetId}`, {method: 'DELETE'})
+        await fetch(`/tweets/${tweetId}`, {method: 'DELETE'})
+        .then(res => alert(res.status + ': ' + res.statusText))
         // refresh tweets, notify user, undisable now deleted tweet's button.
         readTweets()
-        alert("Tweet deleted!")
+        // alert("Tweet deleted!")
         buttonNode.disabled = false
+      }
+
+      async function login (){
+        const username = document.body.querySelector("#loginUsername").value
+        const password = document.body.querySelector("#loginPassword").value
+        await fetch(`/users`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({username, password}),
+        }).then(res => alert(res.status + ': ' + res.statusText))
+        document.body.querySelector("#loginUsername").hidden = true;
+        document.body.querySelector("#loginPassword").hidden = true;
+        document.body.querySelector("#loginButton").hidden = true;
+        document.body.querySelector("#logoutButton").hidden = false;
+      }
+
+      async function logout (){
+        await fetch(`/users`, {
+          method: 'DELETE',
+        }).then(res => alert(res.status + ': ' + res.statusText))
+        document.body.querySelector("#loginUsername").hidden = false;
+        document.body.querySelector("#loginPassword").hidden = false;
+        document.body.querySelector("#loginButton").hidden = false;
+        document.body.querySelector("#logoutButton").hidden = true;
       }
     </script>
   </body>
