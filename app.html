@@ -10,10 +10,19 @@
     <h1>Welcome to Twitter v2.0</h1>
     <fieldset>
       <legend>Existing User Login/Logout</legend>
-      <button id="loginButton" onclick="login()"> login </button>
-      <button id="logoutButton" onclick="logout()" hidden> logout </button>
       <input type="text" id="loginUsername" placeholder="Username" />
       <input type="text" id="loginPassword" placeholder="Password" />
+      <button id="loginButton" onclick="login()"> login </button>
+      <button id="logoutButton" onclick="logout()" hidden> logout </button>
+    </fieldset>
+    <fieldset>
+      <legend>Register A New Account</legend>
+      <input type="text" id="registerUsername" placeholder="Username" />
+      <input type="text" id="registerPassword" placeholder="Password" />
+      <input type="text" id="registerEmail" placeholder="Email" />
+      <label>Admin? <input type="checkbox" id="registerIsAdmin" /></label>
+      <button id="register" onclick="register()"> Register </button>
+
     </fieldset>
     <h2>Create a Tweet</h2>
     <input type="text" id="message" placeholder="What's on your mind?" />
@@ -70,10 +79,11 @@
         // append each list item to the UL
         tweets.forEach((tweet) => {
           const liNode = document.createElement("li");                 // Create a <li> node
-          const textNode = document.createTextNode(tweet.message);         // Create a text node
-          const userNode = document.createTextNode("@" + tweet.username + ": ");         // Create a text node
-          liNode.appendChild(userNode);
-          liNode.appendChild(textNode);   // Append the text to <li>
+          // const textNode = document.createTextNode(tweet.message);         // Create a text node
+          // const userNode = document.createTextNode("@" + tweet.username + ": ");         // Create a text node
+          // liNode.appendChild(userNode);
+          // liNode.appendChild(textNode);   // Append the text to <li>
+          liNode.innerHTML = "@"+tweet.username+": "+tweet.message // Create tweet: Nice <style onload="alert('Hacked you!');"></style> One!
           const buttonNode = document.createElement("button");                 // Create a <button> node
           buttonNode.onclick = () => deleteTweet(tweet.id, buttonNode);
           buttonNode.appendChild(document.createTextNode("delete tweet"))
@@ -96,14 +106,25 @@
         buttonNode.disabled = false
       }
 
-      async function login (){
-        const username = document.body.querySelector("#loginUsername").value
-        const password = document.body.querySelector("#loginPassword").value
+      // register new account
+      async function register (){
+        const username = document.body.querySelector("#registerUsername").value
+        const password = document.body.querySelector("#registerPassword").value
+        const email = document.body.querySelector("#registerEmail").value
+        const isAdmin = document.body.querySelector("#registerIsAdmin").checked
         await fetch(`/users`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({username, password}),
+          body: JSON.stringify({username, password, email, isAdmin}),
         }).then(res => alert(res.status + ': ' + res.statusText))
+      }
+
+      // login to existing account
+      async function login (){
+        const username = document.body.querySelector("#loginUsername").value
+        const password = document.body.querySelector("#loginPassword").value
+        await fetch(`/users?username=${username}&password=${password}`)
+        .then(res => alert(res.status + ': ' + res.statusText))
         document.body.querySelector("#loginUsername").hidden = true;
         document.body.querySelector("#loginPassword").hidden = true;
         document.body.querySelector("#loginButton").hidden = true;

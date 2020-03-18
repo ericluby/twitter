@@ -94,7 +94,7 @@ server.delete('/tweets/:tweetId', AUTH_REQUIRED, async function deleteTweetHandl
   `, [tweetId])).length === 0){
     res.sendStatus(404)
     return;
-  }else if ((await dbCxn.any(`
+  }else if (!user.is_admin && (await dbCxn.any(`
       SELECT
         *
       FROM
@@ -114,11 +114,34 @@ server.delete('/tweets/:tweetId', AUTH_REQUIRED, async function deleteTweetHandl
   `, [tweetId]);
   res.sendStatus(204)
 })
+server.post('/users', registerUser)
 
-server.post('/users', passport.authenticate('local'), loginUser)
+
+server.get('/users', passport.authenticate('local'), loginUser)
 server.delete('/users', AUTH_REQUIRED, logoutUser)
-
 server.listen(port, () => console.log(`Example app listening on port ${port}!`))
+
+async function registerUser (req, res) {
+  // const {username, password} = req.user // (same as the next two lines combined)
+  const username = req.body.username
+  const password = req.body.password
+  const email = req.body.email
+  const isAdmin = req.body.isAdmin
+  console.log('registering user', {username, password, email, isAdmin})
+
+  if (!username || !password || !email){
+    return res.sendStatus(400)
+  }
+  await dbCxn.any(`
+    INSERT INTO
+      Users
+      (email, password, username, is_admin)
+    VALUES
+      ($1, $2, $3:raw, $4)
+  `, [email, password, username, isAdmin]); // username: 'mluby',True); --
+  //  (${email}, ${password}, ${username}, ${isAdmin})
+  res.sendStatus(201)
+}
 
 async function loginUser (req, res) {
   // const {username, password} = req.user // (same as the next two lines combined)
@@ -132,7 +155,7 @@ async function loginUser (req, res) {
       console.error("Session save went badly."+err)
       return res.status(500)
     }
-    return res.sendStatus(201)
+    return res.sendStatus(200)
   })
 }
 
