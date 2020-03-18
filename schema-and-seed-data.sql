@@ -8,15 +8,16 @@ CREATE TABLE Tweets (
 
 CREATE TABLE Users (
     id SERIAL PRIMARY KEY  NOT NULL,
-    username TEXT  NOT NULL,
+    username TEXT UNIQUE NOT NULL,
     password TEXT  NOT NULL,
-    email TEXT
+    email TEXT UNIQUE,
+    is_admin BOOLEAN NOT NULL
 );
 
-INSERT INTO Users (username, password, email)
+INSERT INTO Users (username, password, email, is_admin)
 VALUES
-   ('pumpkin', 'slumpkin', 'lumpkin@example.com'),
-   ('cherry', 'berry', 'hairy@example.com')
+   ('pumpkin', 'slumpkin', 'lumpkin@example.com', True),
+   ('cherry', 'berry', 'hairy@example.com', False)
 ;
 
 INSERT INTO Tweets (author_id, message)
