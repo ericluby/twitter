@@ -9,6 +9,8 @@ const port = process.env.PORT
 var pgp = require('pg-promise')(/* options */)
 var dbCxn = pgp(process.env.DATABASE_URL);
 var bodyParser = require('body-parser')
+const bcrypt = require("bcrypt-nodejs")
+const ROUNDS = 8
 
 server.use(bodyParser.json())
 server.use(morgan('dev'))
@@ -23,7 +25,7 @@ passport.use(new LocalStrategy(async function(username, password, done) {
   if (!user) {
     console.log("user not found")
     return done(null, false, {message: "Incorrect username."})
-  } else if (user.password !== password) {
+  } else if (!isValidPassword(password, user.password)) {
     console.log("user found but wrong password")
     return done(null, false, {message: "Incorrect password."})
   } else {
@@ -124,7 +126,7 @@ server.listen(port, () => console.log(`Example app listening on port ${port}!`))
 async function registerUser (req, res) {
   // const {username, password} = req.user // (same as the next two lines combined)
   const username = req.body.username
-  const password = req.body.password
+  const password = generateHash(req.body.password)
   const email = req.body.email
   const isAdmin = false
   console.log('registering user', {username, password, email, isAdmin})
@@ -175,4 +177,18 @@ async function loginUser (req, res) {
 async function logoutUser (req, res) {
   req.logout()
   res.sendStatus(204)
+}
+
+function generateHash (plaintextPass) {
+  const hashedPassword = bcrypt.hashSync(plaintextPass, bcrypt.genSaltSync(ROUNDS), null)
+  return hashedPassword
+}
+
+function isValidPassword (plaintextPassword, hashedPassword) {
+  try {
+    return bcrypt.compareSync(plaintextPassword, hashedPassword)
+  } catch (compareError) {
+    if (compareError === "Not a valid BCrypt hash.") return false
+    else throw compareError
+  }
 }

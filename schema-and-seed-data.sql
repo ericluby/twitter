@@ -16,8 +16,8 @@ CREATE TABLE Users (
 
 INSERT INTO Users (username, password, email, is_admin)
 VALUES
-   ('pumpkin', 'slumpkin', 'lumpkin@example.com', True),
-   ('cherry', 'berry', 'hairy@example.com', False)
+   ('pumpkin', '$2a$08$UvkbDrpRZZIncq4etMnbZuZINnXU7mMny4RgLRVsRVNSFwOlIV1xu', 'lumpkin@example.com', True), -- password is slumpkin
+   ('cherry', '$2a$08$5p9pB9/dKcKsxCM/53lGP.5P2beUCbrRu1dscP4iB0cJvnpznfXGS', 'hairy@example.com', False) -- password is berry
 ;
 
 INSERT INTO Tweets (author_id, message)
