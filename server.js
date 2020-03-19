@@ -9,8 +9,7 @@ const port = process.env.PORT
 var pgp = require('pg-promise')(/* options */)
 var dbCxn = pgp(process.env.DATABASE_URL);
 var bodyParser = require('body-parser')
-const bcrypt = require("bcrypt-nodejs")
-const ROUNDS = 8
+const {generateHash, isValidPassword} = require('./passwordUtils.js')
 
 server.use(bodyParser.json())
 server.use(morgan('dev'))
@@ -177,18 +176,4 @@ async function loginUser (req, res) {
 async function logoutUser (req, res) {
   req.logout()
   res.sendStatus(204)
-}
-
-function generateHash (plaintextPass) {
-  const hashedPassword = bcrypt.hashSync(plaintextPass, bcrypt.genSaltSync(ROUNDS), null)
-  return hashedPassword
-}
-
-function isValidPassword (plaintextPassword, hashedPassword) {
-  try {
-    return bcrypt.compareSync(plaintextPassword, hashedPassword)
-  } catch (compareError) {
-    if (compareError === "Not a valid BCrypt hash.") return false
-    else throw compareError
-  }
 }
