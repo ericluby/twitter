@@ -10,6 +10,11 @@ var pgp = require('pg-promise')(/* options */)
 var dbCxn = pgp(process.env.DATABASE_URL);
 var bodyParser = require('body-parser')
 const {generateHash, isValidPassword} = require('./passwordUtils.js')
+const resetTokensByToken = {}
+const resetTokensByEmail = {}
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 
 server.use(bodyParser.json())
 server.use(morgan('dev'))
@@ -45,6 +50,7 @@ passport.deserializeUser(async function(id, done) {
 const AUTH_REQUIRED = (req, res, next) => req.isAuthenticated() ? next() : res.sendStatus(401)
 
 server.get('/', (req, res) => res.sendFile(path.join(__dirname,'app.html')))
+server.get('/reset-password', (req, res) => res.sendFile(path.join(__dirname,'resetPassword.html')))
 
 //user can read tweets
 server.get('/tweets', async function readTweetsHandler(req, res){
@@ -117,6 +123,8 @@ server.delete('/tweets/:tweetId', AUTH_REQUIRED, async function deleteTweetHandl
 })
 server.post('/users', registerUser)
 
+server.put('/reset-password', sendPasswordResetEmail)
+server.patch('/reset-password', resetPassword)
 
 server.get('/users', passport.authenticate('local'), loginUser)
 server.delete('/users', AUTH_REQUIRED, logoutUser)
@@ -176,4 +184,65 @@ async function loginUser (req, res) {
 async function logoutUser (req, res) {
   req.logout()
   res.sendStatus(204)
+}
+
+async function sendPasswordResetEmail (req, res){
+  // check that the email exists in the DB
+  const userEmail = req.body.userEmail;
+  if(userEmail === ''){
+    res.sendStatus(400)
+    return;
+  }
+  if ((await dbCxn.any(`
+    SELECT
+      *
+    FROM
+      Users
+    WHERE
+      email = $1
+  `, [userEmail])).length === 0){
+    res.sendStatus(404)
+    return
+  }
+  // generate the reset token
+  // save the reset token and email
+  if(!resetTokensByEmail[userEmail]){
+    const randomToken = Math.floor(Math.random()*1000000);
+    console.log(randomToken);
+    resetTokensByToken[randomToken] = userEmail;
+    resetTokensByEmail[userEmail] = randomToken;
+  }
+  const resetToken = resetTokensByEmail[userEmail]
+  console.log(resetToken);
+
+  // send the email with token
+  const msg = {
+    to: userEmail,
+    from: 'twitterClone@example.com',
+    subject: 'password reset',
+    // text: 'and easy to do anywhere, even with Node.js',
+    html: `<a href="http://localhost:3000/reset-password?token=${resetToken}">click this link to reset your password</a>`,
+  };
+  sgMail.send(msg);
+  res.sendStatus(201)
+}
+
+async function resetPassword (req, res) {
+  const authToken = req.body.authToken
+  const email = resetTokensByToken[authToken]
+  if (!authToken || !req.body.password || !email){
+    return res.sendStatus(400)
+  }
+  const password = generateHash(req.body.password)
+  await dbCxn.any(`
+    UPDATE
+      Users
+    SET
+      password = $1
+    WHERE
+      email = $2
+  `, [password, email]);
+  delete resetTokensByToken[authToken]
+  delete resetTokensByEmail[email]
+  res.sendStatus(200)
 }
