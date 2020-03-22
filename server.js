@@ -221,7 +221,7 @@ async function sendPasswordResetEmail (req, res){
     from: 'twitterClone@example.com',
     subject: 'password reset',
     // text: 'and easy to do anywhere, even with Node.js',
-    html: `<a href="http://localhost:3000/reset-password?token=${resetToken}">click this link to reset your password</a>`,
+    html: `<a href="${process.env.ROOT_URL}/reset-password?token=${resetToken}">click this link to reset your password</a>`,
   };
   sgMail.send(msg);
   res.sendStatus(201)
