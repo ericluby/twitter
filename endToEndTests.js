@@ -1,5 +1,5 @@
 module.exports = {
-  'Demo test ecosia.org' : function (browser) {
+  'register user, log in, create tweet, delete tweet' : function (browser) {
     const time = Date.now()
     browser
       .url('http://localhost:3000/')
