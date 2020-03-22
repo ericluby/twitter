@@ -90,7 +90,7 @@ server.post('/tweets', AUTH_REQUIRED, async function createTweetHandler(req, res
 server.delete('/tweets/:tweetId', AUTH_REQUIRED, async function deleteTweetHandler(req, res){
   const tweetId = req.params.tweetId;
   const userId = req.user.id;
-  console.log('delete tweet', {tweetId})
+  console.log('delete tweet', {tweetId, userId})
   if((await dbCxn.any(`
     SELECT
       *
@@ -101,7 +101,7 @@ server.delete('/tweets/:tweetId', AUTH_REQUIRED, async function deleteTweetHandl
   `, [tweetId])).length === 0){
     res.sendStatus(404)
     return;
-  }else if (!user.is_admin && (await dbCxn.any(`
+  }else if (!req.user.is_admin && (await dbCxn.any(`
       SELECT
         *
       FROM

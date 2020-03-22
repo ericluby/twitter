@@ -20,3 +20,6 @@ pids/
 
 # Coverage directory used by tools like istanbul
 coverage/
+
+# test runner output
+tests_output/

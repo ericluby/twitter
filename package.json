@@ -4,7 +4,7 @@
   "description": "Simplified version of Twitter for learning to build web apps.",
   "main": "server.js",
   "scripts": {
-    "test": "node unitTests.js",
+    "test": "node unitTests.js && node nightwatch.js endToEndTests.js", 
     "start": "node server.js"
   },
   "repository": {
@@ -27,7 +27,11 @@
     "morgan": "^1.9.1",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
-    "pg-promise": "^10.4.4",
+    "pg-promise": "^10.4.4"
+  },
+  "devDependencies": {
+    "chromedriver": "^80.0.1",
+    "nightwatch": "^1.3.4",
     "tape": "^4.13.2"
   }
 }
